@@ -1,16 +1,17 @@
-name: DoubleJumpPlus
+name: DoubleJumpMinus
 main: net.thegamingcraft.DoubleJump.Main
-version: 2.0
+version: 1.0
 
 permissions:
-   DJP.*:
+   DJN.*:
      description: Gives access to all double jump plus features
      children:
-       DJP.doubleJump: true
-       DJP.groundPound: true
-   DJP.doubleJump:
+       DJN.doubleJump: true
+       DJN.groundPound: true
+     default: op
+   DJN.doubleJump:
      description: Allows you to use double jump
-     default: false
-   DJP.groundPound:
+     default: not op
+   DJN.groundPound:
      description: Allows you to use ground pound
-     default: false
+     default: not op

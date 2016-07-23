@@ -5,7 +5,6 @@ import java.util.HashMap;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Effect;
-import org.bukkit.GameMode;
 import org.bukkit.block.Block;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
@@ -22,7 +21,16 @@ import org.bukkit.util.Vector;
 public class Main extends JavaPlugin implements Listener {
 
 	HashMap<Player, Boolean> cooldown = new HashMap<Player, Boolean>();
-	ArrayList<Player> fixed = new ArrayList<Player>();
+
+	private boolean gmodeSupport(Player p) {
+		switch(p.getGameMode()) {
+			case SURVIVAL:
+			case ADVENTURE:
+				return false;
+			default:
+				return true;
+		}
+	}
 
 	@Override
 	public void onEnable() {
@@ -44,11 +52,11 @@ public class Main extends JavaPlugin implements Listener {
 			if (e.getEntity().getType() == EntityType.PLAYER) {
 				Player p = (Player) e.getEntity();
 
-				if (p.hasPermission("DJP.doubleJump") || p.hasPermission("DJP.groundPound")) {
+				if (p.hasPermission("DJN.doubleJump") || p.hasPermission("DJN.groundPound")) {
 					e.setCancelled(true);
 				}
 
-				if (!p.hasPermission("DJP.*") && !p.hasPermission("DJP.groundPound")) return;
+				if (!p.hasPermission("DJN.groundPound")) return;
 				if (p.isSneaking() == true) {
 					ArrayList<Block> blocks = new ArrayList<Block>();
 					blocks.add(p.getWorld().getBlockAt(p.getLocation().subtract(0, 1, 0)));
@@ -80,14 +88,8 @@ public class Main extends JavaPlugin implements Listener {
 	public void onMove(PlayerMoveEvent e) {
 		Player p = e.getPlayer();
 
-		if (!p.hasPermission("DJP.doubleJump") && p.getAllowFlight() == true && !fixed.contains(p)) {
-			p.setFlying(false);
-			p.setAllowFlight(false);
-			fixed.add(p);
-		}
-
-		if (p.getGameMode() == GameMode.CREATIVE) return;
-		if (!p.hasPermission("DJP.doubleJump")) return;
+		if (gmodeSupport(p)) return;
+		if (!p.hasPermission("DJN.doubleJump")) return;
 
 		if (cooldown.get(p) != null && cooldown.get(p) == true) {
 			p.setAllowFlight(true);
@@ -111,8 +113,8 @@ public class Main extends JavaPlugin implements Listener {
 	public void onFly(PlayerToggleFlightEvent e) {
 		Player p = e.getPlayer();
 
-		if (p.getGameMode() == GameMode.CREATIVE) return;
-		if (p.hasPermission("DJP.doubleJump")) {
+		if (gmodeSupport(p)) return;
+		if (p.hasPermission("DJN.doubleJump")) {
 			if (cooldown.get(p) == true) {
 				e.setCancelled(true);
 				cooldown.put(p, false);
@@ -120,6 +122,7 @@ public class Main extends JavaPlugin implements Listener {
 
 				for (Player pl : Bukkit.getOnlinePlayers()) {
 					pl.playEffect(p.getLocation(), Effect.MOBSPAWNER_FLAMES, 2004);
+					pl.playEffect(p.getLocation(), Effect.GHAST_SHOOT, 2004);
 				}
 
 				p.setAllowFlight(false);
@@ -132,12 +135,11 @@ public class Main extends JavaPlugin implements Listener {
 	public void onSneak(PlayerToggleSneakEvent e) {
 		Player p = e.getPlayer();
 
-		if (p.getGameMode() == GameMode.CREATIVE) return;
-		if (!p.hasPermission("DJP.groundPount")) return;
+		if (gmodeSupport(p)) return;
+		if (!p.hasPermission("DJN.groundPound")) return;
 
 		if (p.isOnGround() == false && cooldown.get(p) != null && cooldown.get(p) == false) {
 			p.setVelocity(new Vector(0, -5, 0));
 		}
 	}
-
 }

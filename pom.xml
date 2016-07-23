@@ -15,6 +15,6 @@
             <scope>provided</scope>
     </dependency>
   </dependencies>
-  <artifactId>DoubleJumpPlus</artifactId>
-  <version>2.0</version>
+  <artifactId>DoubleJumpMinus</artifactId>
+  <version>1.0</version>
 </project>
