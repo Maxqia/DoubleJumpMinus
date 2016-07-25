@@ -42,6 +42,7 @@ public class Main extends JavaPlugin implements Listener {
 	@Override
 	public void onEnable() {
 		Bukkit.getServer().getPluginManager().registerEvents(this, this);
+		saveDefaultConfig();
 	}
 
 	@Override
@@ -88,23 +89,26 @@ public class Main extends JavaPlugin implements Listener {
 				if (!p.hasPermission("DJN.groundPound")) return;
 
 				if (p.isSneaking() == true) {
-					// Play block breaking sound in radius around player
+					// Play land effect in radius around player
 					for (int x = -2; x <= 2; x++) {
 						for (int y = -2; y <= 2; y++)
 							for (int z = -2; z <= 2; z++)
 								for (Player pl : Bukkit.getOnlinePlayers()) {
 									Block b = p.getWorld().getBlockAt(p.getLocation().subtract(x, y, z));
-									pl.playEffect(b.getLocation(), Effect.STEP_SOUND, b.getTypeId());
+									String effect = getConfig().getString("groundpound.landeffect");
+									if (!effect.equalsIgnoreCase("disabled"))
+										pl.playEffect(b.getLocation(), Effect.valueOf(effect), b.getTypeId());
 								}
-					}
+						}
 
 					// Damage Entities in radius
 					if (p.hasPermission("DJN.damage")) {
 						List<Entity> nearby = p.getNearbyEntities(5, 5, 5);
 						for (Entity entity : nearby) {
 							if (entity instanceof Damageable) {
-								((Damageable) entity).damage(1);
-								entity.setVelocity(entity.getLocation().subtract(p.getLocation()).toVector().normalize().setY(0.5D));
+								((Damageable) entity).damage(getConfig().getInt("groundpound.damage")); // Damage Entity
+								Vector vector = entity.getLocation().subtract(p.getLocation()).toVector().normalize(); // Get relative direction
+								entity.setVelocity(vector.setY(getConfig().getDouble("groundpound.knockback"))); // Set upward force
 							}
 						}
 					}
@@ -131,9 +135,9 @@ public class Main extends JavaPlugin implements Listener {
 			cooldown.put(p, true);
 		}
 
-		if (cooldown.get(p) != null && cooldown.get(p) == false) {
+		if ((!getConfig().getString("doublejump.traileffect").equalsIgnoreCase("disabled")) && cooldown.get(p) != null && cooldown.get(p) == false) {
 			for (Player pl : Bukkit.getOnlinePlayers()) {
-				pl.playEffect(p.getLocation(), Effect.SMOKE, 2004);
+				pl.playEffect(p.getLocation(), Effect.valueOf(getConfig().getString("doublejump.traileffect")), 2004); // Effect Trail
 			}
 		}
 	}
@@ -148,11 +152,16 @@ public class Main extends JavaPlugin implements Listener {
 			if (cooldown.get(p) == true) {
 				e.setCancelled(true);
 				cooldown.put(p, false);
-				p.setVelocity(p.getLocation().getDirection().multiply(1.6D).setY(1.0D));
+
+				Double multiply = getConfig().getDouble("doublejump.speed");
+				Double setY = getConfig().getDouble("doublejump.height");
+				p.setVelocity(p.getLocation().getDirection().multiply(multiply).setY(setY));
 
 				for (Player pl : Bukkit.getOnlinePlayers()) {
-					pl.playEffect(p.getLocation(), Effect.MOBSPAWNER_FLAMES, 2004);
-					pl.playEffect(p.getLocation(), Effect.GHAST_SHOOT, 2004);
+					if (!getConfig().getString("doublejump.launcheffect").equalsIgnoreCase("disabled"))
+							pl.playEffect(p.getLocation(), Effect.valueOf(getConfig().getString("doublejump.launcheffect")), 2004);
+					if (!getConfig().getString("doublejump.launchsound").equalsIgnoreCase("disabled"))
+						pl.playEffect(p.getLocation(), Effect.valueOf(getConfig().getString("doublejump.launchsound")), 2004);
 				}
 
 				p.setAllowFlight(false);
@@ -169,7 +178,7 @@ public class Main extends JavaPlugin implements Listener {
 		if (!p.hasPermission("DJN.groundPound")) return;
 
 		if (p.isOnGround() == false && cooldown.get(p) != null && cooldown.get(p) == false) {
-			p.setVelocity(new Vector(0, -5, 0));
+			p.setVelocity(new Vector(0, getConfig().getInt("groundpound.velocity"), 0)); // Shoot player towards ground
 		}
 	}
 }

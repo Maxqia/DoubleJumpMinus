@@ -1,0 +1,13 @@
+#You can see the sounds and effects list at https://hub.spigotmc.org/javadocs/spigot/org/bukkit/Effect.html
+#Set effects/sounds to "disabled" to disable
+doublejump:
+  traileffect: SMOKE
+  launcheffect: MOBSPAWNER_FLAMES
+  launchsound: GHAST_SHOOT
+  height: 1.0
+  speed: 1.6
+groundpound:
+  landeffect: STEP_SOUND
+  velocity: -5
+  knockback: 0.5
+  damage: 1
