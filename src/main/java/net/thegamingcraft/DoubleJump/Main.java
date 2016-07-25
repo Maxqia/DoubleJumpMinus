@@ -1,11 +1,12 @@
 package net.thegamingcraft.DoubleJump;
 
-import java.util.ArrayList;
+import java.util.List;
 import java.util.HashMap;
-
 import org.bukkit.Bukkit;
 import org.bukkit.Effect;
 import org.bukkit.block.Block;
+import org.bukkit.entity.Damageable;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -57,27 +58,28 @@ public class Main extends JavaPlugin implements Listener {
 				}
 
 				if (!p.hasPermission("DJN.groundPound")) return;
-				if (p.isSneaking() == true) {
-					ArrayList<Block> blocks = new ArrayList<Block>();
-					blocks.add(p.getWorld().getBlockAt(p.getLocation().subtract(0, 1, 0)));
-					blocks.add(p.getWorld().getBlockAt(p.getLocation().subtract(1, 1, 0)));
-					blocks.add(p.getWorld().getBlockAt(p.getLocation().subtract(0, 1, 1)));
-					blocks.add(p.getWorld().getBlockAt(p.getLocation().subtract(-1, 1, 0)));
-					blocks.add(p.getWorld().getBlockAt(p.getLocation().subtract(0, 1, -1)));
-					blocks.add(p.getWorld().getBlockAt(p.getLocation().subtract(1, 1, 1)));
-					blocks.add(p.getWorld().getBlockAt(p.getLocation().subtract(-1, 1, -1)));
-					blocks.add(p.getWorld().getBlockAt(p.getLocation().subtract(2, 1, 0)));
-					blocks.add(p.getWorld().getBlockAt(p.getLocation().subtract(-2, 1, 0)));
-					blocks.add(p.getWorld().getBlockAt(p.getLocation().subtract(0, 1, 2)));
-					blocks.add(p.getWorld().getBlockAt(p.getLocation().subtract(0, 1, -2)));
 
-					for (Block b : blocks) {
-						for (Player pl : Bukkit.getOnlinePlayers()) {
-							pl.playEffect(b.getLocation(), Effect.STEP_SOUND, b.getTypeId());
-						}
+				if (p.isSneaking() == true) {
+					// Play block breaking sound in radius around player
+					for (int x = -2; x <= 2; x++) {
+						for (int y = -2; y <= 2; y++)
+							for (int z = -2; z <= 2; z++)
+								for (Player pl : Bukkit.getOnlinePlayers()) {
+									Block b = p.getWorld().getBlockAt(p.getLocation().subtract(x, y, z));
+									pl.playEffect(b.getLocation(), Effect.STEP_SOUND, b.getTypeId());
+								}
 					}
 
-					p.setSneaking(false);
+					// Damage Entities in radius
+					if (p.hasPermission("DJN.damage")) {
+						List<Entity> nearby = p.getNearbyEntities(5, 5, 5);
+						for (Entity entity : nearby) {
+							if (entity instanceof Damageable) {
+								((Damageable) entity).damage(1);
+								entity.setVelocity(entity.getLocation().subtract(p.getLocation()).toVector().normalize().setY(0.5D));
+							}
+						}
+					}
 				}
 			}
 		}

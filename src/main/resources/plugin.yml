@@ -8,10 +8,14 @@ permissions:
      children:
        DJN.doubleJump: true
        DJN.groundPound: true
+       DJN.damage: true
      default: op
    DJN.doubleJump:
      description: Allows you to use double jump
      default: not op
    DJN.groundPound:
      description: Allows you to use ground pound
+     default: not op
+   DJN.damage:
+     description: Do damage with a groundpound
      default: not op
