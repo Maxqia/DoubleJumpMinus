@@ -1,7 +1,11 @@
 name: DoubleJumpMinus
 main: net.thegamingcraft.DoubleJump.Main
 version: 1.0
-
+commands:
+   fly:
+       description: Toggles ability to Fly
+       usage: /fly
+       permission: DJN.fly
 permissions:
    DJN.*:
      description: Gives access to all double jump plus features
@@ -9,6 +13,7 @@ permissions:
        DJN.doubleJump: true
        DJN.groundPound: true
        DJN.damage: true
+       DJN.fly: true
      default: op
    DJN.doubleJump:
      description: Allows you to use double jump
@@ -19,3 +24,6 @@ permissions:
    DJN.damage:
      description: Do damage with a groundpound
      default: not op
+   DJN.fly:
+     description: Allows you to fly
+     default: false

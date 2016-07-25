@@ -5,6 +5,8 @@ import java.util.HashMap;
 import org.bukkit.Bukkit;
 import org.bukkit.Effect;
 import org.bukkit.block.Block;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Damageable;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
@@ -13,6 +15,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
+import org.bukkit.event.player.PlayerGameModeChangeEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerToggleFlightEvent;
 import org.bukkit.event.player.PlayerToggleSneakEvent;
@@ -22,8 +25,11 @@ import org.bukkit.util.Vector;
 public class Main extends JavaPlugin implements Listener {
 
 	HashMap<Player, Boolean> cooldown = new HashMap<Player, Boolean>();
+	HashMap<Player, Boolean> flying = new HashMap<Player, Boolean>();
 
-	private boolean gmodeSupport(Player p) {
+	private boolean shouldFly (Player p) {
+	    if (flying.get(p) != null && flying.get(p))
+	        return true;
 		switch(p.getGameMode()) {
 			case SURVIVAL:
 			case ADVENTURE:
@@ -44,6 +50,28 @@ public class Main extends JavaPlugin implements Listener {
 			pl.setFlying(false);
 			pl.setAllowFlight(false);
 		}
+	}
+
+	@Override
+	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
+		if (cmd.getName().equalsIgnoreCase("fly")) {
+			Player p = (Player) sender;
+			Boolean fly = flying.get(p);
+			if (shouldFly(p)) fly = p.getAllowFlight();
+			if (fly == null) fly = false;
+			fly = !fly;
+			p.setAllowFlight(fly);
+			p.sendMessage("§6Set fly mode§c " + (fly ? "enabled" : "disabled") + " §6for " + p.getDisplayName() + "§6." );
+			flying.put(p, fly);
+			return true;
+		}
+		return false;
+	}
+
+	@EventHandler
+	public void onGameModeSwitch(PlayerGameModeChangeEvent event) {
+		Player p = event.getPlayer();
+		flying.put(p, null);
 	}
 
 	@SuppressWarnings("deprecation")
@@ -90,7 +118,7 @@ public class Main extends JavaPlugin implements Listener {
 	public void onMove(PlayerMoveEvent e) {
 		Player p = e.getPlayer();
 
-		if (gmodeSupport(p)) return;
+		if (shouldFly(p)) return;
 		if (!p.hasPermission("DJN.doubleJump")) return;
 
 		if (cooldown.get(p) != null && cooldown.get(p) == true) {
@@ -115,7 +143,7 @@ public class Main extends JavaPlugin implements Listener {
 	public void onFly(PlayerToggleFlightEvent e) {
 		Player p = e.getPlayer();
 
-		if (gmodeSupport(p)) return;
+		if (shouldFly(p)) return;
 		if (p.hasPermission("DJN.doubleJump")) {
 			if (cooldown.get(p) == true) {
 				e.setCancelled(true);
@@ -137,7 +165,7 @@ public class Main extends JavaPlugin implements Listener {
 	public void onSneak(PlayerToggleSneakEvent e) {
 		Player p = e.getPlayer();
 
-		if (gmodeSupport(p)) return;
+		if (shouldFly(p)) return;
 		if (!p.hasPermission("DJN.groundPound")) return;
 
 		if (p.isOnGround() == false && cooldown.get(p) != null && cooldown.get(p) == false) {
