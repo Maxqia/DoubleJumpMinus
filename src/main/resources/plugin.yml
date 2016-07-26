@@ -1,6 +1,6 @@
 name: DoubleJumpMinus
 main: net.thegamingcraft.DoubleJump.Main
-version: 1.0
+version: 1.1
 commands:
    fly:
        description: Toggles ability to Fly
